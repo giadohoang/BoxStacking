@@ -3,134 +3,144 @@ import java.util.Random;
 
 public class BoxStacking {
 	/* Representation of a box */
-    static class Box implements Comparable<Box>{ 
-      
-        // h --> height, w --> width, 
-        // d --> depth 
-        int h, w, d, area; 
-          
-        // for simplicity of solution, 
-        // always keep w <= d 
-  
-        /*Constructor to initialise object*/
-        public Box(int h, int w, int d) { 
-            this.h = h; 
-            this.w = w; 
-            this.d = d; 
-        } 
-          
-        /*To sort the box array on the basis 
-        of area in decreasing order of area */
-        @Override
-        public int compareTo(Box o) { 
-            return o.area-this.area; 
-        } 
-    } 
-    /* Returns the height of the tallest 
+	static class Box implements Comparable<Box>{ 
+
+		// height, width, depth 
+		int height, width, depth, area; 
+
+		// for simplicity of solution, 
+		// always keep w <= d 
+
+		/*Constructor to initialize a box*/
+		public Box(int height, int weight, int depth) { 
+			this.height = height; 
+			this.width = weight; 
+			this.depth = depth; 
+		} 
+
+		// Override method
+		@Override
+		public int compareTo(Box o) { 
+			return o.area-this.area; 
+		} 
+	} 
+	/* Returns the height of the tallest 
     stack that can be formed with give  
     type of boxes */
-    static int maxStackHeight( Box arr[], int n){ 
-          
-        Box[] rot = new Box[n*3]; 
-          
-        /* New Array of boxes is created -  
+	static int maxStackHeight( Box listOfBoxes[], int numberOfBoxes){ 
+
+		// Create an array of boxes holding original box and its 2 rotation dimensions
+		Box[] rotationList = new Box[numberOfBoxes*3]; 
+
+		/* New Array of boxes is created -  
         considering all 3 possible rotations,  
         with width always greater than equal 
         to depth */
-        for(int i = 0;i < n;i++){ 
-            Box box = arr[i]; 
-              
-            /* Orignal Box*/
-            rot[3*i] = new Box(box.h, Math.max(box.w,box.d),  
-                                    Math.min(box.w,box.d)); 
-              
-            /* First rotation of box*/
-            rot[3*i + 1] = new Box(box.w, Math.max(box.h,box.d),  
-                                       Math.min(box.h,box.d)); 
-              
-            /* Second rotation of box*/
-            rot[3*i + 2] = new Box(box.d, Math.max(box.w,box.h), 
-                                       Math.min(box.w,box.h)); 
-        } 
-          
-   //     System.out.println("All possible combination of boxes after rotation");
-     //   System.out.println("l w d");
-        
-        
-      //  for (int i = 0; i <rot.length ; i++) {
-        //	System.out.println("Rotation");
-            
-       // 	System.out.println(rot[i].h + " " + rot[i].w + " " + rot[i].d + "-->");
-            
-       // }
-        /* Calculating base area of  
+		for(int i = 0;i < numberOfBoxes;i++){ 
+			Box currentBox = listOfBoxes[i]; 
+
+			/* Original Box Dimension*/
+			rotationList[3*i] = new Box(currentBox.height, // height
+					Math.max(currentBox.width,currentBox.depth),  //width
+					Math.min(currentBox.width,currentBox.depth)); //depth
+
+			/* First rotation Dimension*/
+			rotationList[3*i + 1] = new Box(currentBox.width, //height
+					Math.max(currentBox.height,currentBox.depth),  //width
+					Math.min(currentBox.height,currentBox.depth)); //depth
+
+			/* Second rotation Dimension*/
+			rotationList[3*i + 2] = new Box(currentBox.depth, //height
+					Math.max(currentBox.width,currentBox.height), //width
+					Math.min(currentBox.width,currentBox.height)); //depth
+		} 
+		/*
+        System.out.println("All possible combination of boxes after rotation");
+        System.out.println("length width depth");
+        for (int i = 0; i <rotationList.length ; i++) {
+        	System.out.println("Rotation");
+          	System.out.println(rotationList[i].height + " " + rotationList[i].width + " " + rotationList[i].depth + "-->");      
+        }
+		 */
+
+		/* Calculating base area of  
         each of the boxes.*/
-        for(int i = 0; i < rot.length; i++) 
-            rot[i].area = rot[i].w * rot[i].d; 
-          
-        /* Sorting the Boxes on the bases  
+		for(int i = 0; i < rotationList.length; i++) {
+			rotationList[i].area = rotationList[i].width * rotationList[i].depth; 
+		} 
+
+		/* Sorting the Boxes on the bases  
         of Area in non Increasing order.*/
-        Arrays.sort(rot); 
-          
-        int count = 3 * n; 
-          
-        /* Initialize msh values for all  
-        indexes  
-        msh[i] --> Maximum possible Stack Height 
-                   with box i on top */
-        int[]msh = new int[count]; 
-        for (int i = 0; i < count; i++ ) 
-            msh[i] = rot[i].h; 
-          
-        /* Computing optimized msh[]  
+		Arrays.sort(rotationList); 
+
+		int count = 3 * numberOfBoxes; 
+
+		/* Initialize maximumStackHeight values for all  
+        indexes. let maximumStackHeight[i] denotes Maximum 
+        possible Stack Height with box i on top */
+
+		int[] maximumStackHeight = new int[count];
+
+		// Base case, if there is only one box on the stack, the maximumStackHeight is the box's height   
+		for (int i = 0; i < count; i++ ) {
+			maximumStackHeight[i] = rotationList[i].height; 
+		}
+
+		/* Computing optimized maximumStackHeight[]  
         values in bottom up manner */
-        for(int i = 0; i < count; i++){ 
-            msh[i] = 0; 
-            Box box = rot[i]; 
-            int val = 0; 
-              
-            for(int j = 0; j < i; j++){ 
-                Box prevBox = rot[j]; 
-                if(box.w < prevBox.w && box.d < prevBox.d){ 
-                    val = Math.max(val, msh[j]); 
-                } 
-            } 
-            msh[i] = val + box.h; 
-        } 
-          
-        int max = -1; 
-          
-        /* Pick maximum of all msh values */
-        for(int i = 0; i < count; i++){ 
-            max = Math.max(max, msh[i]); 
-        } 
-          
-        return max; 
-    } 
+
+		for(int i = 0; i < count; i++){ 
+			maximumStackHeight[i] = 0; 
+			Box box = rotationList[i]; //rotationList is now sorted in Increasing order
+			int val = 0;
+
+			for(int j = 0; j < i; j++){ //Loop runs from i = 1
+				Box prevBox = rotationList[j]; 
+				/*
+				 * If currentBox's width and depth are strictly smaller than previous box's dimension
+				 * take the 
+				 */
+				if(box.width < prevBox.width && box.depth < prevBox.depth){ 
+					val = Math.max(val, maximumStackHeight[j]); 
+				} 
+			} 
+			maximumStackHeight[i] = val + box.height; // maximumStackHeight[i] = maximumStackHeight[j] + box[i]. height
+		} 
+
+		int max = -1; 
+
+		/* Pick maximum of all msh values */
+		for(int i = 0; i < count; i++){ 
+			max = Math.max(max, maximumStackHeight[i]); 
+		} 
+
+		return max; 
+	} 
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		int number =10000;
-		 Random randomGenerator = new Random();
-		 Box[] arr = new Box[number];
-		 for(int i =0; i <arr.length; i++) {
+		Random randomGenerator = new Random();
+		//Try different number of boxes
 
-		        arr[i] = new Box(randomGenerator.nextInt(10000), //height
-		        		randomGenerator.nextInt(10000), //weight
-		        		randomGenerator.nextInt(10000)); //depth
-		 }
-		 
-		// arr[0] = new Box(1,2,4);
-		// arr[1] = new Box(2,3,5);
-		 //arr[0] = new Box(4,7,9);
-		 
-	          long start = System.nanoTime();
-	        System.out.println("The maximum possible "+ 
-	                           "height of stack is " +  
-	                           maxStackHeight(arr,number)); 
-	        long finished = System.nanoTime();
-	        long runTime = finished - start;
-	        System.out.println("runtime: " + runTime);
-	    }
+		int numberOfBoxes =10000;
+
+		Box[] listOfBoxes = new Box[numberOfBoxes];
+
+		//Instantiate dimensions
+		for(int i =0; i <listOfBoxes.length; i++) {
+
+			listOfBoxes[i] = new Box(randomGenerator.nextInt(10000), //height
+					randomGenerator.nextInt(10000), //weight
+					randomGenerator.nextInt(10000)); //depth
+		}
+
+		long start = System.nanoTime();
+		System.out.println("The maximum possible "+ 
+				"height of stack is " +  
+				maxStackHeight(listOfBoxes,numberOfBoxes)); 
+		long finished = System.nanoTime();
+		long runTime = finished - start;
+		System.out.println("runtime: " + runTime);
 	}
+}
 
